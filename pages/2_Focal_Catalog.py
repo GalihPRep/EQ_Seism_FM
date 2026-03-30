@@ -54,8 +54,11 @@ West = float(col3.text_input("West", "90.0"))
 East = float(col4.text_input("East", "142.0"))
 
 st.sidebar.header("Global CMT Filter")
-cmt_start = st.sidebar.datetime_input("Start DateTime", datetime.datetime(2015, 1, 1, 00, 00, 00), )
-cmt_end = st.sidebar.datetime_input("End DateTime", datetime.datetime(2020, 12, 31, 23, 59, 59), )
+#cmt_start = st.sidebar.datetime_input("Start DateTime", datetime.datetime(2021, 1, 1, 00, 00, 00), )
+#cmt_end = st.sidebar.datetime_input("End DateTime", datetime.datetime(2024, 12, 31, 23, 59, 59), )
+
+cmt_start = tim_sta
+cmt_end = tim_end
 
 
 # ⬇️ Load BMKG focal data
@@ -254,15 +257,15 @@ def load_cmt(url):
     rows = []
     for rec in records:
         if len(rec) < 5: continue
-        dt = f"{rec[0][5:15]} {rec[0][16:21]}"
+        dt = f"{rec[0][5:15]} {rec[0][16:26]}"
         row = {
             'Datetime': dt,
-            'Lat': float(rec[0][26:33]),
-            'Lon': float(rec[0][35:41]),
-            'Depth': float(rec[0][43:47]),
-            'Mag_mb': float(rec[0][47:51]),
+            'Lat': float(rec[0][27:33]),
+            'Lon': float(rec[0][34:41]),
+            'Depth': float(rec[0][42:47]),
+            'Mag_mb': float(rec[0][48:51]),
             'Mag_Ms': float(rec[0][52:55]),
-            'S1': float(rec[4][56:60]),
+            'S1': float(rec[4][57:60]),
             'D1': float(rec[4][61:64]),
             'R1': float(rec[4][65:69])
         }
@@ -284,20 +287,45 @@ def draw_beachballs(df, ax, projection, depth_col='Depth', lon_col='Lon', lat_co
                        zorder=10, facecolor=color)
             ax.add_collection(bb)
 
-uri = "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/NEW_MONTHLY"
-uri_yea = [str(x) for x in range(2021, 2026)]
-uri_mon = [
-    "jan", "feb", "mar", "apr",
-    "may", "jun", "jul", "aug",
-    "sep", "oct", "nov", "dec"
-]
-urls = [
+urls1 = [
     "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/jan76_dec20.ndk",
     "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/PRE1976/deep_1962-1976.ndk",
     "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/PRE1976/intdep_1962-1975.ndk",
-    *[f"{uri}/{y}/{x}{y[2:]}.ndk" for x in uri_mon for y in uri_yea[:-1]],
-    *[f"{uri}/2025/{x}25.ndk" for x in uri_mon[:-1]],
 ]
+
+from datetime import datetime, timedelta
+
+base_url = "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/NEW_MONTHLY"
+
+# Define start and end
+start = datetime(2021, 1, 1)
+end = datetime(2025, 11, 1)
+
+# Month abbreviations used in filenames
+month_map = {
+    1: "jan", 2: "feb", 3: "mar", 4: "apr",
+    5: "may", 6: "jun", 7: "jul", 8: "aug",
+    9: "sep", 10: "oct", 11: "nov", 12: "dec"
+}
+
+urls = [*urls1]
+current = start
+while current <= end:
+    year = current.year
+    month = current.month
+    # last two digits of year
+    yy = str(year)[-2:]
+    # month abbreviation
+    mm = month_map[month]
+    filename = f"{mm}{yy}.ndk"
+    url = f"{base_url}/{year}/{filename}"
+    urls.append(url)
+    # move to next month
+    if month == 12:
+        current = datetime(year + 1, 1, 1)
+    else:
+        current = datetime(year, month + 1, 1)
+
 
 df_cmt = pd.concat([load_cmt(url) for url in urls])
 
