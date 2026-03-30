@@ -287,11 +287,6 @@ def draw_beachballs(df, ax, projection, depth_col='Depth', lon_col='Lon', lat_co
                        zorder=10, facecolor=color)
             ax.add_collection(bb)
 
-urls1 = [
-    "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/jan76_dec20.ndk",
-    "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/PRE1976/deep_1962-1976.ndk",
-    "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/PRE1976/intdep_1962-1975.ndk",
-]
 
 from datetime import datetime, timedelta
 
@@ -308,7 +303,7 @@ month_map = {
     9: "sep", 10: "oct", 11: "nov", 12: "dec"
 }
 
-urls = [*urls1]
+urls_a = []
 current = start
 while current <= end:
     year = current.year
@@ -319,13 +314,21 @@ while current <= end:
     mm = month_map[month]
     filename = f"{mm}{yy}.ndk"
     url = f"{base_url}/{year}/{filename}"
-    urls.append(url)
+    urls_a.append(url)
     # move to next month
     if month == 12:
         current = datetime(year + 1, 1, 1)
     else:
         current = datetime(year, month + 1, 1)
 
+# Historical bulk files
+urls_b = [
+    "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/jan76_dec20.ndk",
+    "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/PRE1976/deep_1962-1976.ndk",
+    "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/PRE1976/intdep_1962-1975.ndk"
+]
+urls = urls_a + urls_b
+#urls = urls_a 
 
 df_cmt = pd.concat([load_cmt(url) for url in urls])
 
@@ -333,7 +336,7 @@ df_cmt['Datetime'] = pd.to_datetime(df_cmt['Datetime'], errors='coerce')
 df_cmt = df_cmt[
     (df_cmt['Datetime'] >= cmt_start) & (df_cmt['Datetime'] <= cmt_end) &
     (df_cmt['Lat'].between(South, North)) & (df_cmt['Lon'].between(West, East))
-    ].sort_values(by="Datetime")
+    ]
 
 # 🗺️ Plot Global CMT
 prj_map_2 = ccrs.Mercator()
