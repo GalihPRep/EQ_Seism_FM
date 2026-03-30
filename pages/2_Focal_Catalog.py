@@ -284,13 +284,19 @@ def draw_beachballs(df, ax, projection, depth_col='Depth', lon_col='Lon', lat_co
                        zorder=10, facecolor=color)
             ax.add_collection(bb)
 
-
+uri = "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/NEW_MONTHLY"
+uri_yea = [str(x) for x in range(2021, 2026)]
+uri_mon = [
+    "jan", "feb", "mar", "apr",
+    "may", "jun", "jul", "aug",
+    "sep", "oct", "nov", "dec"
+]
 urls = [
     "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/jan76_dec20.ndk",
     "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/PRE1976/deep_1962-1976.ndk",
-    "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/PRE1976/intdep_1962-1975.ndk"
-    
-     
+    "https://www.ldeo.columbia.edu/~gcmt/projects/CMT/catalog/PRE1976/intdep_1962-1975.ndk",
+    *[f"{uri}/{y}/{x}{y[2:]}.ndk" for x in uri_mon for y in uri_yea[:-1]],
+    *[f"{uri}/2025/{x}25.ndk" for x in uri_mon[:-1]],
 ]
 
 df_cmt = pd.concat([load_cmt(url) for url in urls])
