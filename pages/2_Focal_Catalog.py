@@ -305,7 +305,7 @@ df_cmt['Datetime'] = pd.to_datetime(df_cmt['Datetime'], errors='coerce')
 df_cmt = df_cmt[
     (df_cmt['Datetime'] >= cmt_start) & (df_cmt['Datetime'] <= cmt_end) &
     (df_cmt['Lat'].between(South, North)) & (df_cmt['Lon'].between(West, East))
-    ]
+    ].sort_values(by="Datetime")
 
 # 🗺️ Plot Global CMT
 prj_map_2 = ccrs.Mercator()
