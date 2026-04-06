@@ -41,8 +41,6 @@ dat_sta_def = datetime.datetime(
     minute=0,
     second=0
 )
-dat_sta = st.sidebar.date_input("Start Date", dat_sta_def)
-dat_end = st.sidebar.date_input("End Date", dat_end_def)
 
 # 📄 Upload Excel file
 uploaded_file = st.sidebar.file_uploader("Upload Excel File", type=["xlsx"])
@@ -61,6 +59,9 @@ df_filtered = df[
     df['LAT'].between(df['LAT'].min(), df['LAT'].max()) &
     df['LON'].between(df['LON'].min(), df['LON'].max())
 ]
+df["DATETIME"] = pd.to_datetime(df["DATETIME"])
+dat_sta = st.sidebar.date_input("Start Date", df["DATETIME"].min())
+dat_end = st.sidebar.date_input("End Date", df["DATETIME"].max())
 
 # 🔍 Filter by selected date range
 df_filtered = df[
