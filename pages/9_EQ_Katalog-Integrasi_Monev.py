@@ -12,6 +12,9 @@ import cartopy
 from cartopy.io.shapereader import Reader
 from matplotlib.lines import Line2D
 from PIL import Image
+# import folium
+# from streamlit_folium import st_folium
+# import requests
 
 # 🌍 Page Config
 st.set_page_config(page_title='Earthquake Dashboard - Katalog Integrasi', layout='wide', page_icon='🌋')
@@ -20,33 +23,35 @@ st.set_page_config(page_title='Earthquake Dashboard - Katalog Integrasi', layout
 fil_upl = st.sidebar.file_uploader("Upload the CSV or Excel file", type=["csv", "xlsx"])
 
 if fil_upl is not None:
-    dfr = pd.DataFrame((pd.read_csv if fil_upl.name.endswith(".csv") else pd.read_excel)(fil_upl))
-    if "LAT_FIX" in dfr.columns and "LON_FIX" in dfr.columns:
-        dfr.rename(columns={"LAT_FIX": "LAT", "LON_FIX": "LON"}, inplace=True)
-    elif "Latitude" in dfr.columns and "Longitude" in dfr.columns:
-        dfr.rename(columns={"Latitude": "LAT", "Longitude": "LON"}, inplace=True)
+    dtf = pd.DataFrame((pd.read_csv if fil_upl.name.endswith(".csv") else pd.read_excel)(fil_upl))
+    if "LAT_FIX" in dtf.columns and "LON_FIX" in dtf.columns:
+        dtf.rename(columns={"LAT_FIX": "LAT", "LON_FIX": "LON"}, inplace=True)
+    elif "Latitude" in dtf.columns and "Longitude" in dtf.columns:
+        dtf.rename(columns={"Latitude": "LAT", "Longitude": "LON", "Date": "DATETIME"}, inplace=True)
+        dtf["DATETIME"] = pd.to_datetime(dtf["DATETIME"]) + pd.to_timedelta(dtf['Time (UTC)'].astype(str))
+        dtf.drop(["Time (UTC)"], axis=1, inplace=True)
     st.success("File uploaded and data loaded successfully!")
-    st.write(dfr.head())  # Preview first rows
+    st.write(dtf.head())  # Preview first rows
 else:
     st.warning("Please upload an CSV or Excel file to proceed.")
 
 
 # 🧹 Filter Data
-df_filtered = dfr[
-    dfr['LAT'].between(dfr['LAT'].min(), dfr['LAT'].max()) &
-    dfr['LON'].between(dfr['LON'].min(), dfr['LON'].max())
+df_filtered = dtf[
+    dtf['LAT'].between(dtf['LAT'].min(), dtf['LAT'].max()) &
+    dtf['LON'].between(dtf['LON'].min(), dtf['LON'].max())
     ]
-dfr["DATETIME"] = pd.to_datetime(dfr["DATETIME"])
+dtf["DATETIME"] = pd.to_datetime(dtf["DATETIME"])
 
 # 📅 Use date_input for better UX
 st.sidebar.subheader("🕒 Select Date Range")
-dat_sta = st.sidebar.date_input("Start Date", dfr["DATETIME"].min())
-dat_end = st.sidebar.date_input("End Date", dfr["DATETIME"].max())
+dat_sta = st.sidebar.date_input("Start Date", dtf["DATETIME"].min())
+dat_end = st.sidebar.date_input("End Date", dtf["DATETIME"].max())
 
 # 🔍 Filter by selected date range
-df_filtered = dfr[
-    (dfr["DATETIME"] >= pd.to_datetime(dat_sta))
-    & (dfr["DATETIME"] <= pd.to_datetime(dat_end) + datetime.timedelta(days=1))
+df_filtered = dtf[
+    (dtf["DATETIME"] >= pd.to_datetime(dat_sta))
+    & (dtf["DATETIME"] <= pd.to_datetime(dat_end) + datetime.timedelta(days=1))
 ]
 
 # 🗺️ Folium Map Construction
