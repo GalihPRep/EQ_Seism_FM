@@ -16,37 +16,37 @@ from PIL import Image
 # 🌍 Page Config
 st.set_page_config(page_title='Earthquake Dashboard - Katalog Integrasi', layout='wide', page_icon='🌋')
 
-st.sidebar.subheader("🕒 Select Date Range")
-# 📅 Use date_input for better UX
-tim_tod = datetime.datetime.today()
-tim_yea = tim_tod.year - (1 if tim_tod.month == 1 else 0)
-tim_mon = (12 if tim_tod.month == 1 else tim_tod.month - 1)
-
 # 📄 Upload Excel file
 fil_upl = st.sidebar.file_uploader("Upload the CSV or Excel file", type=["csv", "xlsx"])
 
 if fil_upl is not None:
-    df = pd.DataFrame((pd.read_csv if fil_upl.name.endswith(".csv") else pd.read_excel)(fil_upl))
-    df.rename(columns={"LAT_FIX": "LAT", "LON_FIX": "LON"}, inplace=True)
+    dfr = pd.DataFrame((pd.read_csv if fil_upl.name.endswith(".csv") else pd.read_excel)(fil_upl))
+    if "LAT_FIX" in dfr.columns and "LON_FIX" in dfr.columns:
+        dfr.rename(columns={"LAT_FIX": "LAT", "LON_FIX": "LON"}, inplace=True)
+    elif "Latitude" in dfr.columns and "Longitude" in dfr.columns:
+        dfr.rename(columns={"Latitude": "LAT", "Longitude": "LON"}, inplace=True)
     st.success("File uploaded and data loaded successfully!")
-    st.write(df.head())  # Preview first rows
+    st.write(dfr.head())  # Preview first rows
 else:
-    st.warning("Please upload an Excel file to proceed.")
+    st.warning("Please upload an CSV or Excel file to proceed.")
 
 
 # 🧹 Filter Data
-df_filtered = df[
-    df['LAT'].between(df['LAT'].min(), df['LAT'].max()) &
-    df['LON'].between(df['LON'].min(), df['LON'].max())
-]
-df["DATETIME"] = pd.to_datetime(df["DATETIME"])
-dat_sta = st.sidebar.date_input("Start Date", df["DATETIME"].min())
-dat_end = st.sidebar.date_input("End Date", df["DATETIME"].max())
+df_filtered = dfr[
+    dfr['LAT'].between(dfr['LAT'].min(), dfr['LAT'].max()) &
+    dfr['LON'].between(dfr['LON'].min(), dfr['LON'].max())
+    ]
+dfr["DATETIME"] = pd.to_datetime(dfr["DATETIME"])
+
+# 📅 Use date_input for better UX
+st.sidebar.subheader("🕒 Select Date Range")
+dat_sta = st.sidebar.date_input("Start Date", dfr["DATETIME"].min())
+dat_end = st.sidebar.date_input("End Date", dfr["DATETIME"].max())
 
 # 🔍 Filter by selected date range
-df_filtered = df[
-    (df["DATETIME"] >= pd.to_datetime(dat_sta))
-    & (df["DATETIME"] <= pd.to_datetime(dat_end) + datetime.timedelta(days=1))
+df_filtered = dfr[
+    (dfr["DATETIME"] >= pd.to_datetime(dat_sta))
+    & (dfr["DATETIME"] <= pd.to_datetime(dat_end) + datetime.timedelta(days=1))
 ]
 
 # 🗺️ Folium Map Construction
@@ -72,7 +72,6 @@ else:
 #    name="ESRI Ocean",
 #    control=False
 #).add_to(m)
-
 #for _, row in df_filtered.iterrows():
 #    if pd.notnull(row['LAT']) and pd.notnull(row['LON']) and pd.notnull(row['MAG']) and pd.notnull(row['DEPTH']):
 #        folium.CircleMarker(
@@ -88,7 +87,6 @@ else:
 #                max_width=250
 #            )
 #        ).add_to(m)
-
 #try:
 #    fault_geojson = requests.get(
 #        "https://bmkg-content-inatews.storage.googleapis.com/indo_faults_lines.geojson"
@@ -100,9 +98,7 @@ else:
 #    ).add_to(m)
 #except Exception as e:
 #    st.warning(f"⚠️ Fault line overlay failed: {e}")
-
 #folium.LayerControl(collapsed=False).add_to(m)
-
 #st.subheader(f"🗺️ Seismicities Map Catalog Integration ({start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')})")
 #st_folium(m, width=1000, height=650)
 
