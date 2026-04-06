@@ -27,7 +27,16 @@ if fil_upl is not None:
     if "LAT_FIX" in dtf.columns and "LON_FIX" in dtf.columns:
         dtf.rename(columns={"LAT_FIX": "LAT", "LON_FIX": "LON"}, inplace=True)
     elif "Latitude" in dtf.columns and "Longitude" in dtf.columns:
-        dtf.rename(columns={"Latitude": "LAT", "Longitude": "LON", "Date": "DATETIME"}, inplace=True)
+        dtf = dtf.iloc[:, [0, 1, 2, 6, 3, 4, 5, 9, 7, 8]]
+        dtf.rename(columns={
+            "#EventID": "Event ID",
+            "Latitude": "LAT",
+            "Longitude": "LON",
+            "Date": "DATETIME",
+            "Depth (km)": "DEPTH",
+            "Magnitude": "MAG",
+            "Event Location Name": "REGION"
+        }, inplace=True)
         dtf["DATETIME"] = pd.to_datetime(dtf["DATETIME"]) + pd.to_timedelta(dtf['Time (UTC)'].astype(str))
         dtf.drop(["Time (UTC)"], axis=1, inplace=True)
     st.success("File uploaded and data loaded successfully!")
