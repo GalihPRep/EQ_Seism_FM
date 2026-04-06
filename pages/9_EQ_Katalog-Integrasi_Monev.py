@@ -20,37 +20,43 @@ from PIL import Image
 st.set_page_config(page_title='Earthquake Dashboard - Katalog Integrasi', layout='wide', page_icon='🌋')
 
 # 📄 Upload Excel file
-fil_upl = st.sidebar.file_uploader("Upload the CSV or Excel file", type=["csv", "xlsx"])
-
-if fil_upl is not None:
-    dtf = pd.DataFrame((pd.read_csv if fil_upl.name.endswith(".csv") else pd.read_excel)(fil_upl))
-    if "LAT_FIX" in dtf.columns and "LON_FIX" in dtf.columns:
-        dtf.rename(columns={"LAT_FIX": "LAT", "LON_FIX": "LON"}, inplace=True)
-    elif "Latitude" in dtf.columns and "Longitude" in dtf.columns:
-        dtf = dtf.iloc[:, [0, 1, 2, 6, 3, 4, 5, 9, 7, 8]]
-        dtf.rename(columns={
-            "#EventID": "Event ID",
-            "Latitude": "LAT",
-            "Longitude": "LON",
-            "Date": "DATETIME",
-            "Depth (km)": "DEPTH",
-            "Magnitude": "MAG",
-            "Event Location Name": "REGION"
-        }, inplace=True)
-        dtf["DATETIME"] = pd.to_datetime(dtf["DATETIME"]) + pd.to_timedelta(dtf['Time (UTC)'].astype(str))
-        dtf.drop(["Time (UTC)"], axis=1, inplace=True)
-    st.success("File uploaded and data loaded successfully!")
-    st.write(dtf.head())  # Preview first rows
-else:
-    st.warning("Please upload an CSV or Excel file to proceed.")
+fil_upl = st.sidebar.file_uploader(
+    "Upload the CSV or Excel file",
+    type=["csv", "xlsx"],
+    accept_multiple_files=True
+)
+dtf = pd.DataFrame(columns=["Event ID", "DATETIME", "MAG", "LAT", "LON", "DEPTH", "REGION"])
+for x in fil_upl:
+    if x is not None:
+        dtf_fil = pd.DataFrame((pd.read_csv if x.name.endswith(".csv") else pd.read_excel)(x))
+        if "LAT_FIX" in dtf_fil.columns and "LON_FIX" in dtf_fil.columns:
+            dtf_fil.rename(columns={"LAT_FIX": "LAT", "LON_FIX": "LON"}, inplace=True)
+            dtf_fil["DATETIME"] = pd.to_datetime(dtf_fil["DATETIME"])
+        elif "Latitude" in dtf_fil.columns and "Longitude" in dtf_fil.columns:
+            dtf_fil = dtf_fil.iloc[:, [0, 1, 2, 6, 3, 4, 5, 9, 7, 8]]
+            dtf_fil.rename(columns={
+                "#EventID": "Event ID",
+                "Date": "DATETIME",
+                "Magnitude": "MAG",
+                "Latitude": "LAT",
+                "Longitude": "LON",
+                "Depth (km)": "DEPTH",
+                "Event Location Name": "REGION"
+            }, inplace=True)
+            dtf_fil["DATETIME"] = pd.to_datetime(dtf_fil["DATETIME"]) + pd.to_timedelta(dtf_fil['Time (UTC)'].astype(str))
+            dtf_fil.drop(["Time (UTC)"], axis=1, inplace=True)
+        st.success("File uploaded and data loaded successfully!")
+        dtf = pd.concat([dtf, dtf_fil], ignore_index=True)
+        dtf.sort_values(by="DATETIME", ascending=False, inplace=True)
+    else:
+        st.warning("Please upload an CSV or Excel file to proceed.")
 
 
 # 🧹 Filter Data
-df_filtered = dtf[
+dtf_flt = dtf[
     dtf['LAT'].between(dtf['LAT'].min(), dtf['LAT'].max()) &
     dtf['LON'].between(dtf['LON'].min(), dtf['LON'].max())
     ]
-dtf["DATETIME"] = pd.to_datetime(dtf["DATETIME"])
 
 # 📅 Use date_input for better UX
 st.sidebar.subheader("🕒 Select Date Range")
@@ -58,9 +64,9 @@ dat_sta = st.sidebar.date_input("Start Date", dtf["DATETIME"].min())
 dat_end = st.sidebar.date_input("End Date", dtf["DATETIME"].max())
 
 # 🔍 Filter by selected date range
-df_filtered = dtf[
-    (dtf["DATETIME"] >= pd.to_datetime(dat_sta))
-    & (dtf["DATETIME"] <= pd.to_datetime(dat_end) + datetime.timedelta(days=1))
+dtf_flt = dtf_flt[
+    (dtf_flt["DATETIME"] >= pd.to_datetime(dat_sta))
+    & (dtf_flt["DATETIME"] <= pd.to_datetime(dat_end) + datetime.timedelta(days=1))
 ]
 
 # 🗺️ Folium Map Construction
@@ -72,9 +78,9 @@ def depth_color(depth):
     else:
         return 'green'
 
-if not df_filtered.empty:
-    y0 = df_filtered['LAT'].mean()
-    x0 = df_filtered['LON'].mean()
+if not dtf_flt.empty:
+    y0 = dtf_flt['LAT'].mean()
+    x0 = dtf_flt['LON'].mean()
 else:
     y0, x0 = -2.0, 120.0
     st.warning("⚠️ No data found. Using default map center.")
@@ -117,8 +123,8 @@ else:
 #st_folium(m, width=1000, height=650)
 
 st.subheader(f"📋 Filtered Earthquake Events ({dat_sta.strftime('%Y-%m-%d')} to {dat_end.strftime('%Y-%m-%d')})")
-df_filtered.index = range(1, len(df_filtered)+1)
-st.dataframe(df_filtered)
+dtf_flt.index = range(1, len(dtf_flt) + 1)
+st.dataframe(dtf_flt)
 
 # 🗺️ Island Setup
 list_pulau = ['Sumatra','Jawa','Bali-A','Nustra','Kalimantan','Sulawesi','Maluku','Papua']
@@ -133,7 +139,7 @@ def clip_df(df, island):
     geo_df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.LON, df.LAT), crs="EPSG:4326")
     return geo_df.clip(load_clip(island))
 
-gpd_seis = gpd.GeoDataFrame(df_filtered, geometry=gpd.points_from_xy(df_filtered.LON, df_filtered.LAT), crs="EPSG:4326")
+gpd_seis = gpd.GeoDataFrame(dtf_flt, geometry=gpd.points_from_xy(dtf_flt.LON, dtf_flt.LAT), crs="EPSG:4326")
 
 def get_eq_coords(pulau_name):
     try:
@@ -187,7 +193,7 @@ def stats(df):
         df.shape[0]
     ]
 
-stat_rows = [stats(clip_df(df_filtered, reg)) for reg in list_pulau]
+stat_rows = [stats(clip_df(dtf_flt, reg)) for reg in list_pulau]
 stat_df = pd.DataFrame(stat_rows, columns=['<60 km','60–300 km','>300 km','M<4','M4–5','M≥5','Total'])
 stat_df['Wilayah'] = labels
 stat_df.set_index('Wilayah', inplace=True)
@@ -251,7 +257,7 @@ ax.legend(handles=legend_elements, loc='lower center', bbox_to_anchor=(0.5, -0.2
 st.markdown("### 🗺️ Seismic Events by PGR Region")
 st.pyplot(fig)
 
-stat_rows = [stats(clip_df(df_filtered, reg)) for reg in list_pgr]
+stat_rows = [stats(clip_df(dtf_flt, reg)) for reg in list_pgr]
 stat_df = pd.DataFrame(stat_rows, columns=['<60 km','60–300 km','>300 km','M<4','M4–5','M≥5','Total'])
 stat_df['Region'] = list_pgr
 stat_df.set_index('Region', inplace=True)
@@ -316,7 +322,7 @@ ax.legend(handles=legend_elements, loc='lower center', bbox_to_anchor=(0.5, -0.2
 st.markdown("### 🗺️ Seismic Events by PGR Region")
 st.pyplot(fig)
 
-stat_rows = [stats(clip_df(df_filtered, reg)) for reg in list_pgr]
+stat_rows = [stats(clip_df(dtf_flt, reg)) for reg in list_pgr]
 stat_df = pd.DataFrame(stat_rows, columns=['<60 km','60–300 km','>300 km','M<4','M4–5','M≥5','Total'])
 stat_df['Region'] = list_pgr
 stat_df.set_index('Region', inplace=True)
