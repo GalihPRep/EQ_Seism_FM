@@ -12,6 +12,7 @@ import cartopy
 from cartopy.io.shapereader import Reader
 from matplotlib.lines import Line2D
 from PIL import Image
+import re
 # import folium
 # from streamlit_folium import st_folium
 # import requests
@@ -43,7 +44,12 @@ for x in fil_upl:
                 "Depth (km)": "DEPTH",
                 "Event Location Name": "REGION"
             }, inplace=True)
-            dtf_fil["DATETIME"] = pd.to_datetime(dtf_fil["DATETIME"]) + pd.to_timedelta(dtf_fil['Time (UTC)'].astype(str))
+            dtf_fil["DATETIME"] = dtf_fil["DATETIME"].astype(str).apply(
+                lambda y: datetime.datetime.strptime(y, "%Y-%d-%m %H:%M:%S") \
+                    if re.match(r"[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+", y) \
+                    else datetime.datetime.strptime(y, "%d/%m/%Y")
+            )
+            dtf_fil["DATETIME"] = dtf_fil["DATETIME"] + pd.to_timedelta(dtf_fil['Time (UTC)'].astype(str))
             dtf_fil.drop(["Time (UTC)"], axis=1, inplace=True)
         st.success("File uploaded and data loaded successfully!")
         dtf = pd.concat([dtf, dtf_fil], ignore_index=True)
