@@ -12,10 +12,6 @@ import cartopy
 from cartopy.io.shapereader import Reader
 from matplotlib.lines import Line2D
 from PIL import Image
-import folium
-from streamlit_folium import st_folium
-import requests
-from calendar import monthrange
 
 # 🌍 Page Config
 st.set_page_config(page_title='Earthquake Dashboard - Katalog Integrasi', layout='wide', page_icon='🌋')
@@ -25,28 +21,12 @@ st.sidebar.subheader("🕒 Select Date Range")
 tim_tod = datetime.datetime.today()
 tim_yea = tim_tod.year - (1 if tim_tod.month == 1 else 0)
 tim_mon = (12 if tim_tod.month == 1 else tim_tod.month - 1)
-dat_end_def = datetime.datetime(
-    year=tim_yea,
-    month=tim_mon,
-    day=monthrange(tim_yea, tim_mon)[1],
-    hour=23,
-    minute=59,
-    second=59
-)
-dat_sta_def = datetime.datetime(
-    year=tim_yea,
-    month=tim_mon,
-    day=1,
-    hour=0,
-    minute=0,
-    second=0
-)
 
 # 📄 Upload Excel file
-uploaded_file = st.sidebar.file_uploader("Upload Excel File", type=["xlsx"])
+fil_upl = st.sidebar.file_uploader("Upload the CSV or Excel file", type=["csv", "xlsx"])
 
-if uploaded_file is not None:
-    df = pd.read_excel(uploaded_file)
+if fil_upl is not None:
+    df = pd.DataFrame((pd.read_csv if fil_upl.name.endswith(".csv") else pd.read_excel)(fil_upl))
     df.rename(columns={"LAT_FIX": "LAT", "LON_FIX": "LON"}, inplace=True)
     st.success("File uploaded and data loaded successfully!")
     st.write(df.head())  # Preview first rows
