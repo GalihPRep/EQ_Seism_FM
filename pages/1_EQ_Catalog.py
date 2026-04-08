@@ -12,6 +12,9 @@ from cartopy.io.shapereader import Reader
 import datetime
 from calendar import monthrange
 
+fld = "media"
+fil_dep_mag = f"{fld}/depth_mag.png"
+
 # 🌍 Page Config
 st.set_page_config(page_title='Earthquake Dashboard', layout='wide', page_icon='🌋')
 
@@ -310,8 +313,8 @@ stat_df.set_index('Wilayah', inplace=True)
 st.subheader("📊 Depth & Magnitude by Island")
 stat_df.drop(columns='Total').plot.bar(rot=6, figsize=(15,10))
 plt.tight_layout()
-plt.savefig("depth_mag.png")
-st.image(Image.open("depth_mag.png"), caption="Depth & Magnitude per Island")
+plt.savefig(fil_dep_mag)
+st.image(Image.open(fil_dep_mag), caption="Depth & Magnitude per Island")
 
 # 🧾 Table Summary
 st.subheader("📋 Earthquake Summary per Island")

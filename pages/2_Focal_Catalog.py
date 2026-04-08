@@ -18,7 +18,7 @@ import contextily as cx
 from calendar import monthrange
 
 fld = "media"
-fil_rpt = f"{fld}/focal_report.pdf"
+fil_foc_rep = f"{fld}/focal_report.pdf"
 
 warnings.filterwarnings("ignore")
 
@@ -186,7 +186,7 @@ report_df['Focal'] = generate_beachballs(report_df)
 # 📄 Export to PDF with custom widths
 # ───────────────────────────────────────
 
-def export_to_pdf(df, filename=fil_rpt):
+def export_to_pdf(df, filename=fil_foc_rep):
     pdf = FPDF(orientation='L')
     pdf.set_auto_page_break(auto=True, margin=10)
     pdf.add_page()
@@ -248,11 +248,11 @@ def show_pdf(path):
         st.warning("⚠️ PDF not found.")
 
 
-show_pdf(fil_rpt)
+show_pdf(fil_foc_rep)
 
 # Show download button
-with open(fil_rpt, "rb") as f:
-    st.download_button("⬇️ Download PDF Report", f.read(), file_name=fil_rpt, mime="application/pdf")
+with open(fil_foc_rep, "rb") as f:
+    st.download_button("⬇️ Download PDF Report", f.read(), file_name=fil_foc_rep, mime="application/pdf")
 
 # 🌐 Global CMT Section
 st.markdown(f"### 🌎 Peta Global CMT Harvard\n{cmt_start} – {cmt_end}")
