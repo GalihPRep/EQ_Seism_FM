@@ -14,14 +14,17 @@ from matplotlib.lines import Line2D
 from PIL import Image
 import re
 import os
+import glob
 # import folium
 # from streamlit_folium import st_folium
 # import requests
 
 fld = "media"
+fld_doc = f"{fld}/documents"
 fil_dep_mag = f"{fld}/depth_mag.png"
 fil_dep_mag_pgr = f"{fld}/depth_mag_pgr.png"
 os.makedirs(f"./{fld}", exist_ok=True)
+os.makedirs(f"./{fld_doc}", exist_ok=True)
 
 # 🌍 Page Config
 st.set_page_config(page_title='Earthquake Dashboard - Katalog Integrasi', layout='wide', page_icon='🌋')
@@ -34,8 +37,13 @@ fil_upl = st.sidebar.file_uploader(
 )
 dtf = pd.DataFrame(columns=["Event ID", "DATETIME", "MAG", "LAT", "LON", "DEPTH", "REGION"])
 for x in fil_upl:
+    with open(f"{fld_doc}/{x.name}", "wb") as y:
+        y.write(x.getbuffer())
+
+fil_sav = glob.glob(os.path.join(fld_doc, "*.*"))
+for x in fil_sav:
     if x is not None:
-        dtf_fil = pd.DataFrame((pd.read_csv if x.name.endswith(".csv") else pd.read_excel)(x))
+        dtf_fil = pd.DataFrame((pd.read_csv if x.endswith(".csv") else pd.read_excel)(x))
         if "LAT_FIX" in dtf_fil.columns and "LON_FIX" in dtf_fil.columns:
             dtf_fil.rename(columns={"LAT_FIX": "LAT", "LON_FIX": "LON"}, inplace=True)
             dtf_fil["DATETIME"] = pd.to_datetime(dtf_fil["DATETIME"])
