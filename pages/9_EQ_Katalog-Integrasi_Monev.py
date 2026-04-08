@@ -19,6 +19,7 @@ import re
 
 fld = "media"
 fil_dep_mag = f"{fld}/depth_mag.png"
+fil_dep_mag_pgr = f"{fld}/depth_mag_pgr.png"
 
 # 🌍 Page Config
 st.set_page_config(page_title='Earthquake Dashboard - Katalog Integrasi', layout='wide', page_icon='🌋')
@@ -274,8 +275,8 @@ stat_df.set_index('Region', inplace=True)
 st.subheader("📊 Depth & Magnitude by PGR Region")
 stat_df.drop(columns='Total').plot.bar(rot=6, figsize=(15,10))
 plt.tight_layout()
-plt.savefig("depth_mag_pgr.png")
-st.image(Image.open("depth_mag_pgr.png"), caption="Depth & Magnitude per PGR Region")
+plt.savefig(fil_dep_mag_pgr)
+st.image(Image.open(fil_dep_mag_pgr), caption="Depth & Magnitude per PGR Region")
 
 st.subheader("📋 Earthquake Summary per PGR Region")
 st.dataframe(stat_df)
@@ -339,8 +340,8 @@ stat_df.set_index('Region', inplace=True)
 st.subheader("📊 Depth & Magnitude by PGR Region")
 stat_df.drop(columns='Total').plot.bar(rot=6, figsize=(15,10))
 plt.tight_layout()
-plt.savefig("depth_mag_pgr.png")
-st.image(Image.open("depth_mag_pgr.png"), caption="Depth & Magnitude per PGR Region")
+plt.savefig(fil_dep_mag_pgr)
+st.image(Image.open(fil_dep_mag_pgr), caption="Depth & Magnitude per PGR Region")
 
 st.subheader("📋 Earthquake Summary per PGR Region")
 st.dataframe(stat_df)
