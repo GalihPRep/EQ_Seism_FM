@@ -18,7 +18,7 @@ import contextily as cx
 from calendar import monthrange
 
 fld = "media"
-fil_foc_rep = f"{fld}/focal_report.pdf"
+fil_foc_rep = f"focal_report.pdf"
 
 warnings.filterwarnings("ignore")
 
