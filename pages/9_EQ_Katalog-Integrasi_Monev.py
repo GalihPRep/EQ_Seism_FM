@@ -1,6 +1,7 @@
 # Earthquake Dashboard - Streamlit Desktop Edition
 # Created by Indra Gunawan
 import datetime
+import shutil
 
 import streamlit as st
 import pandas as pd
@@ -39,7 +40,6 @@ dtf = pd.DataFrame(columns=["Event ID", "DATETIME", "MAG", "LAT", "LON", "DEPTH"
 for x in fil_upl:
     with open(f"{fld_doc}/{x.name}", "wb") as y:
         y.write(x.getbuffer())
-
 fil_sav = glob.glob(os.path.join(fld_doc, "*.*"))
 for x in fil_sav:
     if x is not None:
@@ -71,6 +71,15 @@ for x in fil_sav:
     else:
         st.warning("Please upload an CSV or Excel file to proceed.")
 
+# Delete it all!
+def del_fil():
+    for item in os.listdir(fld_doc):
+        item_path = os.path.join(fld_doc, item)
+        if os.path.isfile(item_path) or os.path.islink(item_path):
+            os.unlink(item_path) # Remove file or symlink
+        elif os.path.isdir(item_path):
+            shutil.rmtree(item_path) # Remove subdirectory
+st.sidebar.button("Clear all uploads", on_click=del_fil)
 
 # 🧹 Filter Data
 dtf_flt = dtf[
