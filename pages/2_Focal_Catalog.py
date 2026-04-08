@@ -17,6 +17,9 @@ from streamlit_folium import st_folium
 import contextily as cx
 from calendar import monthrange
 
+fld = "media"
+fil_rpt = f"{fld}/focal_report.pdf"
+
 warnings.filterwarnings("ignore")
 
 st.set_page_config(page_title="BMKG & CMT Focal Viewer", layout="wide", page_icon="🌋")
@@ -165,7 +168,7 @@ def generate_beachballs(df, prefix="cmt"):
             fig.figure.set_dpi(300)  # Higher DPI (default is ~100)
 
             # fig = beachball(mt, facecolor=get_color(row['Depth']))
-            path = f"{prefix}_{idx}.png"
+            path = f"{fld}/{prefix}_{idx}.png"
             fig.savefig(path)
             plt.close(fig.figure)
             images.append(path)
@@ -183,7 +186,7 @@ report_df['Focal'] = generate_beachballs(report_df)
 # 📄 Export to PDF with custom widths
 # ───────────────────────────────────────
 
-def export_to_pdf(df, filename="focal_report.pdf"):
+def export_to_pdf(df, filename=fil_rpt):
     pdf = FPDF(orientation='L')
     pdf.set_auto_page_break(auto=True, margin=10)
     pdf.add_page()
@@ -214,7 +217,7 @@ def export_to_pdf(df, filename="focal_report.pdf"):
         # Add beachball image
         img_path = row['Focal']
         if img_path and os.path.exists(img_path):
-            thumb_path = f"thumb_{os.path.basename(img_path)}"
+            thumb_path = f"{fld}/thumb_{os.path.basename(img_path)}"
             img = Image.open(img_path)
             img.thumbnail((25, 25))
             img.save(thumb_path)
@@ -245,11 +248,11 @@ def show_pdf(path):
         st.warning("⚠️ PDF not found.")
 
 
-show_pdf("focal_report.pdf")
+show_pdf(fil_rpt)
 
 # Show download button
-with open("focal_report.pdf", "rb") as f:
-    st.download_button("⬇️ Download PDF Report", f.read(), file_name="focal_report.pdf", mime="application/pdf")
+with open(fil_rpt, "rb") as f:
+    st.download_button("⬇️ Download PDF Report", f.read(), file_name=fil_rpt, mime="application/pdf")
 
 # 🌐 Global CMT Section
 st.markdown(f"### 🌎 Peta Global CMT Harvard\n{cmt_start} – {cmt_end}")
