@@ -16,10 +16,12 @@ import folium
 from streamlit_folium import st_folium
 import requests
 from calendar import monthrange
+import os
 
 fld = "media"
 fil_dep_mag = f"{fld}/depth_mag.png"
 fil_dep_mag_pgr = f"{fld}/depth_mag_pgr.png"
+os.makedirs(f"./{fld}", exist_ok=True)
 
 # 🌍 Page Config
 st.set_page_config(page_title='Earthquake Dashboard - Katalog QC PGN', layout='wide', page_icon='🌋')

@@ -13,6 +13,7 @@ from cartopy.io.shapereader import Reader
 from matplotlib.lines import Line2D
 from PIL import Image
 import re
+import os
 # import folium
 # from streamlit_folium import st_folium
 # import requests
@@ -20,6 +21,7 @@ import re
 fld = "media"
 fil_dep_mag = f"{fld}/depth_mag.png"
 fil_dep_mag_pgr = f"{fld}/depth_mag_pgr.png"
+os.makedirs(f"./{fld}", exist_ok=True)
 
 # 🌍 Page Config
 st.set_page_config(page_title='Earthquake Dashboard - Katalog Integrasi', layout='wide', page_icon='🌋')

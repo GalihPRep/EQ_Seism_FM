@@ -11,9 +11,11 @@ import cartopy
 from cartopy.io.shapereader import Reader
 import datetime
 from calendar import monthrange
+import os
 
 fld = "media"
 fil_dep_mag = f"{fld}/depth_mag.png"
+os.makedirs(f"./{fld}", exist_ok=True)
 
 # 🌍 Page Config
 st.set_page_config(page_title='Earthquake Dashboard', layout='wide', page_icon='🌋')
