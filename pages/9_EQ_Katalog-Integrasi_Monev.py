@@ -79,7 +79,7 @@ def del_fil():
             os.unlink(item_path) # Remove file or symlink
         elif os.path.isdir(item_path):
             shutil.rmtree(item_path) # Remove subdirectory
-st.sidebar.button("Clear all uploads", on_click=del_fil)
+st.sidebar.button("Refresh removed uploads", on_click=del_fil)
 
 # 🧹 Filter Data
 dtf_flt = dtf[
