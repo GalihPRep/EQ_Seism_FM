@@ -15,6 +15,8 @@ import os
 
 fld = "media"
 fil_dep_mag = f"{fld}/depth_mag.png"
+fil_reg_fre = f"{fld}/region_freq.png"
+fil_reg_mag_bar = f"{fld}/region_mag_bar.png"
 os.makedirs(f"./{fld}", exist_ok=True)
 
 # 🌍 Page Config
@@ -118,8 +120,8 @@ remarks.plot.bar(x='Region', y='Count', figsize=(20,12), rot=20)
 plt.xlabel("Region")
 plt.ylabel("Earthquake Count")
 plt.tight_layout()
-plt.savefig("region_freq.png")
-st.image(Image.open("region_freq.png"), caption="Frequency by Region")
+plt.savefig(fil_reg_fre)
+st.image(Image.open(fil_reg_fre), caption="Frequency by Region")
 
 # 📋 Display Table
 st.subheader("📋 Earthquake Catalog")
@@ -170,9 +172,9 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 
 # 📸 Export and Render Chart
-plt.savefig("region_mag_bar.png")
+plt.savefig(fil_reg_mag_bar)
 st.subheader("📊 Frequency by Region and Magnitude Category")
-st.image("region_mag_bar.png", caption="Frequency by Region and Magnitude Classification")
+st.image(fil_reg_mag_bar, caption="Frequency by Region and Magnitude Classification")
 
 # 📋 Show Frequency DataFrame
 st.subheader("📋 Earthquake Frequency by Region and Magnitude Class")
