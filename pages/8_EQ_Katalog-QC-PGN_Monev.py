@@ -17,6 +17,7 @@ from streamlit_folium import st_folium
 import requests
 from calendar import monthrange
 import os
+import re
 
 fld = "media"
 fil_dep_mag = f"{fld}/depth_mag.png"
@@ -25,7 +26,6 @@ os.makedirs(f"./{fld}", exist_ok=True)
 
 # 🌍 Page Config
 st.set_page_config(page_title='Earthquake Dashboard - Katalog QC PGN', layout='wide', page_icon='🌋')
-st.sidebar.subheader("🕒 Select Date Range")
 # 📅 Use date_input for better UX
 tim_tod = datetime.datetime.today()
 tim_yea = tim_tod.year - (1 if tim_tod.month == 1 else 0)
@@ -46,21 +46,25 @@ dat_sta_def = datetime.datetime(
     minute=0,
     second=0
 )
-dat_sta = st.sidebar.date_input("Start Date", dat_sta_def)
-dat_end = st.sidebar.date_input("End Date", dat_end_def)
+
 
 # 📄 Upload Excel file
-uploaded_file = st.sidebar.file_uploader("Upload Excel File", type=["xlsx"])
-df = pd.read_excel(uploaded_file)
+fil_upl = st.sidebar.file_uploader("Upload Excel File", type=["xlsx"])
+dtf = pd.read_excel(fil_upl)
+dtf.rename(columns={"Tanggal": "DATE", "Magnitude": "MAG", "Depth": "DEPTH"}, inplace=True)
+dtf["DEPTH"] = dtf["DEPTH"].apply(lambda y: re.sub(" *km", "", y)).astype(float)
+st.sidebar.subheader("🕒 Select Date Range")
+dat_sta = st.sidebar.date_input("Start Date", dtf["DATE"].dt.date.min())
+dat_end = st.sidebar.date_input("End Date", dtf["DATE"].dt.date.max())
 
 # 📍 Combine Latitude and Longitude with direction
-lat_index = df.columns.get_loc("Latitude")
-lon_index = df.columns.get_loc("Longitude")
-lat_dir_col = df.columns[lat_index + 1]
-lon_dir_col = df.columns[lon_index + 1]
+lat_index = dtf.columns.get_loc("Latitude")
+lon_index = dtf.columns.get_loc("Longitude")
+lat_dir_col = dtf.columns[lat_index + 1]
+lon_dir_col = dtf.columns[lon_index + 1]
 
-df["Latitude_Combined"] = df.apply(lambda row: f"{row['Latitude']} {str(row[lat_dir_col]).strip().upper()}", axis=1)
-df["Longitude_Combined"] = df.apply(lambda row: f"{row['Longitude']} {str(row[lon_dir_col]).strip().upper()}", axis=1)
+dtf["Latitude_Combined"] = dtf.apply(lambda row: f"{row['Latitude']} {str(row[lat_dir_col]).strip().upper()}", axis=1)
+dtf["Longitude_Combined"] = dtf.apply(lambda row: f"{row['Longitude']} {str(row[lon_dir_col]).strip().upper()}", axis=1)
 
 def convert_coord(coord_str):
     try:
@@ -70,16 +74,15 @@ def convert_coord(coord_str):
     except:
         return np.nan
 
-df["LAT"] = df["Latitude_Combined"].apply(convert_coord)
-df["LON"] = df["Longitude_Combined"].apply(convert_coord)
+dtf["LAT"] = dtf["Latitude_Combined"].apply(convert_coord)
+dtf["LON"] = dtf["Longitude_Combined"].apply(convert_coord)
 
-df.rename(columns={"Tanggal": "DATE"}, inplace=True)
 # 🧹 Filter by date and valid coordinates
-df_filtered = df[
-    (df["DATE"].dt.date >= dat_sta) &
-    (df["DATE"].dt.date <= dat_end) &
-    df["LAT"].between(-90, 90) &
-    df["LON"].between(-180, 180)
+df_filtered = dtf[
+    (dtf["DATE"].dt.date >= dat_sta) &
+    (dtf["DATE"].dt.date <= dat_end) &
+    dtf["LAT"].between(-90, 90) &
+    dtf["LON"].between(-180, 180)
     ]
 
 # 📋 Display filtered data
