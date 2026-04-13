@@ -44,9 +44,6 @@ lon_index = dtf.columns.get_loc("Longitude")
 lat_dir_col = dtf.columns[lat_index + 1]
 lon_dir_col = dtf.columns[lon_index + 1]
 
-dtf["Latitude_Combined"] = dtf.apply(lambda row: f"{row['Latitude']} {str(row[lat_dir_col]).strip().upper()}", axis=1)
-dtf["Longitude_Combined"] = dtf.apply(lambda row: f"{row['Longitude']} {str(row[lon_dir_col]).strip().upper()}", axis=1)
-
 def convert_coord(coord_str):
     try:
         value, direction = coord_str.split()
@@ -55,8 +52,14 @@ def convert_coord(coord_str):
     except:
         return np.nan
 
-dtf["LAT"] = dtf["Latitude_Combined"].apply(convert_coord)
-dtf["LON"] = dtf["Longitude_Combined"].apply(convert_coord)
+dtf["LAT"] = dtf \
+    .apply(lambda row: f"{row['Latitude']} {str(row[lat_dir_col]).strip().upper()}", axis=1) \
+    .apply(convert_coord)
+dtf["LON"] = dtf \
+    .apply(lambda row: f"{row['Longitude']} {str(row[lon_dir_col]).strip().upper()}", axis=1) \
+    .apply(convert_coord)
+dtf.drop(["Latitude", "Longitude", lat_dir_col, lon_dir_col], axis=1, inplace=True)
+dtf = dtf.iloc[:, [*[i for i in range(12)], 15, 16, *[i for i in range(12, 15)]]]
 
 # 🧹 Filter by date and valid coordinates
 df_filtered = dtf[
