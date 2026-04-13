@@ -73,7 +73,7 @@ def convert_coord(coord_str):
 df["LAT"] = df["Latitude_Combined"].apply(convert_coord)
 df["LON"] = df["Longitude_Combined"].apply(convert_coord)
 
-
+df.rename(columns={"Tanggal": "DATE"}, inplace=True)
 # 🧹 Filter by date and valid coordinates
 df_filtered = df[
     (df["DATE"].dt.date >= dat_sta) &
