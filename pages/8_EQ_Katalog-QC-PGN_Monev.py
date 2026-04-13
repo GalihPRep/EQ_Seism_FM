@@ -26,27 +26,6 @@ os.makedirs(f"./{fld}", exist_ok=True)
 
 # 🌍 Page Config
 st.set_page_config(page_title='Earthquake Dashboard - Katalog QC PGN', layout='wide', page_icon='🌋')
-# 📅 Use date_input for better UX
-tim_tod = datetime.datetime.today()
-tim_yea = tim_tod.year - (1 if tim_tod.month == 1 else 0)
-tim_mon = (12 if tim_tod.month == 1 else tim_tod.month - 1)
-dat_end_def = datetime.datetime(
-    year=tim_yea,
-    month=tim_mon,
-    day=monthrange(tim_yea, tim_mon)[1],
-    hour=23,
-    minute=59,
-    second=59
-)
-dat_sta_def = datetime.datetime(
-    year=tim_yea,
-    month=tim_mon,
-    day=1,
-    hour=0,
-    minute=0,
-    second=0
-)
-
 
 # 📄 Upload Excel file
 fil_upl = st.sidebar.file_uploader("Upload Excel File", type=["xlsx"])
@@ -54,6 +33,8 @@ dtf = pd.read_excel(fil_upl)
 dtf.rename(columns={"Tanggal": "DATE", "Magnitude": "MAG", "Depth": "DEPTH"}, inplace=True)
 dtf["DEPTH"] = dtf["DEPTH"].apply(lambda y: re.sub(" *km", "", y)).astype(float)
 st.sidebar.subheader("🕒 Select Date Range")
+
+# 📅 Use date_input for better UX
 dat_sta = st.sidebar.date_input("Start Date", dtf["DATE"].dt.date.min())
 dat_end = st.sidebar.date_input("End Date", dtf["DATE"].dt.date.max())
 
