@@ -18,23 +18,58 @@ import requests
 from calendar import monthrange
 import os
 import re
+import glob
+import shutil
 
 fld = "media"
+fld_upl = f"{fld}/8_eq"
 fil_dep_mag = f"{fld}/depth_mag.png"
 fil_dep_mag_pgr = f"{fld}/depth_mag_pgr.png"
 os.makedirs(f"./{fld}", exist_ok=True)
+os.makedirs(f"./{fld_upl}", exist_ok=True)
 
 # 🌍 Page Config
 st.set_page_config(page_title='Earthquake Dashboard - Katalog QC PGN', layout='wide', page_icon='🌋')
 
 # 📄 Upload Excel file
-fil_upl = st.sidebar.file_uploader("Upload Excel File", type=["xlsx"])
-dtf = pd.read_excel(fil_upl)
-dtf.rename(columns={"Tanggal": "DATE", "Magnitude": "MAG", "Depth": "DEPTH"}, inplace=True)
-dtf["DEPTH"] = dtf["DEPTH"].apply(lambda y: re.sub(" *km", "", y)).astype(float)
+fil_upl = st.sidebar.file_uploader(
+    "Upload the CSV or Excel file",
+    type=["csv", "xlsx"],
+    accept_multiple_files=True
+)
+dtf = pd.DataFrame(columns=[
+    "No", "publicID", "DATE", "Origin Time", "Mode", "Status", "Phase", "MAG", "Type Magnitude", "Station Count", "LAT",
+    "LON", "DEPTH", "Event Type", "Remark"
+])
+for x in fil_upl:
+    with open(f"{fld_upl}/{x.name}", "wb") as y:
+        y.write(x.getbuffer())
+fil_sav = glob.glob(os.path.join(fld_upl, "*.*"))
+for x in fil_sav:
+    if x is not None:
+        dtf_fil = pd.DataFrame((pd.read_csv if x.endswith(".csv") else pd.read_excel)(x))
+        dtf_fil.rename(columns={"Tanggal": "DATE", "Magnitude": "MAG", "Depth": "DEPTH"}, inplace=True)
+        dtf_fil["DEPTH"] = dtf_fil["DEPTH"].apply(lambda y: re.sub(" *km", "", y)).astype(float)
+        st.success("File uploaded and data loaded successfully!")
+        dtf = pd.concat([dtf, dtf_fil], ignore_index=True)
+        dtf.sort_values(by="DATE", ascending=False, inplace=True)
+    else:
+        st.warning("Please upload an CSV or Excel file to proceed.")
+
+# Delete it all!
+def del_fil():
+    for item in os.listdir(fld_upl):
+        item_path = os.path.join(fld_upl, item)
+        if os.path.isfile(item_path) or os.path.islink(item_path):
+            os.unlink(item_path) # Remove file or symlink
+        elif os.path.isdir(item_path):
+            shutil.rmtree(item_path) # Remove subdirectory
+st.sidebar.button("Refresh removed uploads", on_click=del_fil)
+
 st.sidebar.subheader("🕒 Select Date Range")
 
 # 📅 Use date_input for better UX
+dtf["DATE"] = pd.to_datetime(dtf["DATE"], errors="coerce")
 dat_sta = st.sidebar.date_input("Start Date", dtf["DATE"].dt.date.min())
 dat_end = st.sidebar.date_input("End Date", dtf["DATE"].dt.date.max())
 
