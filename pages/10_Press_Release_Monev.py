@@ -75,7 +75,7 @@ def fetch_narasi_text(time_narasi):
         response.raise_for_status()
         return response.text.strip()
     except Exception:
-        return None
+        return ""
 
 
 def html_to_text(html_content):
@@ -94,6 +94,7 @@ def html_to_text(html_content):
 
 
 def build_narasi_dataframe(df, time_col="time_narasi"):
+    st.code(df[time_col].apply(fetch_narasi_text))
     df["narasi_html"] = df[time_col].apply(fetch_narasi_text).apply(
         lambda x: sub(r"</?strong>", "", y) if (y := x) else x
     )
