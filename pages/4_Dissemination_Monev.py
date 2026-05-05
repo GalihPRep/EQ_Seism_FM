@@ -9,7 +9,7 @@ from calendar import monthrange
 
 # --- Page Setup ---
 st.set_page_config(page_title='TSP Monitoring dan Evaluasi', layout='wide', page_icon="🌍")
-st.sidebar.header("Input Parameter :")
+# st.sidebar.header("Input Parameter :")
 
 # Calculate dynamic dates
 #yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
@@ -23,27 +23,27 @@ st.sidebar.header("Input Parameter :")
 #time_start = st.sidebar.text_input('Start DateTime:', month_before_str)
 #time_end = st.sidebar.text_input('End DateTime:', yesterday_str)
 
-tim_tod = datetime.datetime.today()
-tim_yea = tim_tod.year - (1 if tim_tod.month == 1 else 0)
-tim_mon = (12 if tim_tod.month == 1 else tim_tod.month - 1)
-tim_end_def = datetime.datetime(
-    year=tim_yea,
-    month=tim_mon,
-    day=monthrange(tim_yea, tim_mon)[1],
-    hour=23,
-    minute=59,
-    second=59
-)
-tim_sta_def = datetime.datetime(
-    year=tim_yea,
-    month=tim_mon,
-    day=1,
-    hour=0,
-    minute=0,
-    second=0
-)
-time_sta = st.sidebar.datetime_input("Start DateTime", tim_sta_def)
-time_end = st.sidebar.datetime_input("End DateTime", tim_end_def)
+# tim_tod = datetime.datetime.today()
+# tim_yea = tim_tod.year - (1 if tim_tod.month == 1 else 0)
+# tim_mon = (12 if tim_tod.month == 1 else tim_tod.month - 1)
+# tim_end_def = datetime.datetime(
+#     year=tim_yea,
+#     month=tim_mon,
+#     day=monthrange(tim_yea, tim_mon)[1],
+#     hour=23,
+#     minute=59,
+#     second=59
+# )
+# tim_sta_def = datetime.datetime(
+#     year=tim_yea,
+#     month=tim_mon,
+#     day=1,
+#     hour=0,
+#     minute=0,
+#     second=0
+# )
+# time_sta = st.sidebar.datetime_input("Start DateTime", tim_sta_def)
+# time_end = st.sidebar.datetime_input("End DateTime", tim_end_def)
 
 # --- Helper Functions ---
 def extract_text(tag): return [t.text.strip() for t in soup.find_all(tag)]
@@ -115,13 +115,16 @@ df['lapsetime (minutes)'] = (df['lapsetime (minutes)'].dt.total_seconds()/60).ro
 df['title'] = [f'Tanggal: {d} {t}, Mag: {m}, Depth: {dp}' for d, t, m, dp in zip(dates, times, mags, depths)]
 
 # --- Date Filtering ---
-try:
-    start_dt = pd.to_datetime(time_sta, errors='coerce')
-    end_dt   = pd.to_datetime(time_end, errors='coerce')
-    filtered = df[(df['datetime'] > start_dt) & (df['datetime'] < end_dt)]
-except:
-    st.warning("🧭 Format waktu tidak valid. Pastikan input sesuai contoh: YYYY-MM-DD HH:MM:SS")
-    filtered = pd.DataFrame()
+# try:
+#     start_dt = pd.to_datetime(time_sta, errors='coerce')
+#     end_dt   = pd.to_datetime(time_end, errors='coerce')
+#     filtered = df[(df['datetime'] > start_dt) & (df['datetime'] < end_dt)]
+time_sta = df["datetime"].min()
+time_end = df["datetime"].max()
+filtered = df
+# except:
+#     st.warning("🧭 Format waktu tidak valid. Pastikan input sesuai contoh: YYYY-MM-DD HH:MM:SS")
+#     filtered = pd.DataFrame()
 
 # --- Interactive Map ---
 tiles = 'https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}'
@@ -181,7 +184,7 @@ st.markdown(f"### 🕒 Periode Monitoring: `{time_sta}` s.d. `{time_end}`")
 
 required_cols = ['datetime', 'timesent', 'lon', 'lat', 'mag', 'depth', 'area','Lat-Diss','Lon-Diss']
 existing_cols = [col for col in required_cols if col in df.columns]
-df=df[(df['datetime'] > start_dt) & (df['datetime'] < end_dt)]
+# df=df[(df['datetime'] > start_dt) & (df['datetime'] < end_dt)]
 
 df['date'] = df['datetime'].dt.strftime('%d-%b-%y')       # Example: 04-Jun-25
 df['OT'] = df['datetime'].dt.strftime('%H:%M:%S')          # Example: 06:38:40
