@@ -242,7 +242,7 @@ st.dataframe(df_display, hide_index=True)
 
 
 # 📤 PDF Export Function
-def generate_pdf(df):
+def generate_pdf_old(df):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=10)
@@ -260,6 +260,32 @@ def generate_pdf(df):
     buffer.seek(0)
     return buffer
 
+# 📤 PDF Export Function
+def generate_pdf(df):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=10)
+    pdf.cell(200, 10, txt="Earthquake Press Releases", ln=True, align="C")
+    pdf.ln(5)
+
+    for idx, row in df.iterrows():
+        text = f"{idx + 1}. {row[tim_co1]} - {row[nar_co1]}"
+        # Sanitize text to ensure compatibility with latin1 encoding
+        clean_text = text.encode("latin-1", errors="replace").decode("latin-1")
+        pdf.multi_cell(0, 8, txt=clean_text)
+        pdf.ln(1)
+
+    buffer = BytesIO()
+    # fpdf's output('S') returns a latin1-encoded string (or bytes depending on version)
+    pdf_output = pdf.output(dest='S')
+    if isinstance(pdf_output, str):
+        pdf_bytes = pdf_output.encode('latin1')
+    else:
+        pdf_bytes = bytes(pdf_output)
+        
+    buffer.write(pdf_bytes)
+    buffer.seek(0)
+    return buffer
 
 pdf_data = generate_pdf(df_display)
 st.download_button(
