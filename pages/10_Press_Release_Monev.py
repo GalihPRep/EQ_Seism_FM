@@ -108,8 +108,8 @@ nar_co0 = "narasi_text"
 # --- Fetch and Parse XML ---
 url_pre = 'https://bmkg-content-inatews.storage.googleapis.com/last30event.xml'
 sou_pre = BeautifulSoup(requests.get(url_pre).text, 'html')
-st.write(sou_pre)
 tim_pre = extract_text(tim_co0, sou_pre)
+st.write(tim_pre)
 
 # --- Build DataFrame ---
 df = pd.DataFrame({
