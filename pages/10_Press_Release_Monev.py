@@ -194,11 +194,16 @@ def safe_extract_dep(text):
         return math.nan
     return float(matches[0].replace(",", "."))
 
+from re import findall, sub, IGNORECASE
+
 def safe_extract_mag(text):
     if not text:
         return math.nan
-    # Matches numbers following 'magnitudo' or 'magnitudo M', e.g., '5.2' or '5,2'
-    matches = findall(r"(?<=magnitudo )\d+[.,]?\d*|(?<=magnitudo M)\d+[.,]?\d*", text, flags=re.IGNORECASE)
+    matches = findall(
+        r"(?<=magnitudo )\d+[.,]?\d*|(?<=magnitudo M)\d+[.,]?\d*",
+        text,
+        flags=IGNORECASE
+    )
     if not matches:
         return math.nan
     return float(matches[0].replace(",", "."))
