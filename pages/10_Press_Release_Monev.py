@@ -122,6 +122,7 @@ st.dataframe(df)
 # df['timesent'] = pd.to_datetime(df['timesent'], errors='coerce')
 df = df[df[tim_co0].notna()]
 df = df[(df[tim_co0] >= time_start) & (df[tim_co0] <= time_end)]
+st.dataframe(df)
 
 # 📈 Message Count
 st.markdown(f"### 📈 Total Messages: **{len(df)}** between `{time_start}` and `{time_end}`")
