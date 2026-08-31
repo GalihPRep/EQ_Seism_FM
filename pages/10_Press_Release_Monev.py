@@ -136,91 +136,36 @@ dep_co1 = "Depth (km)"
 mag_co1 = "Magnitude"
 nar_co1 = "Narration Text"
 
-import re
-
 def lat_ett(data: pd.DataFrame):
-    results = []
-    for n in data[nar_co0].tolist():
-        if n is not None:
-            matches = re.findall(r"[^ ]+ L[US]", n, flags=re.IGNORECASE)
-            if matches:
-                o = matches[0]
-                sign = -1 if o[-1].upper() == "S" else 1
-                val = float(re.sub(r"° L.", "", o, flags=re.IGNORECASE).replace(",", "."))
-                results.append(sign * val)
-                continue
-        results.append(math.nan)
-    return results
-
-def lon_ett(data: pd.DataFrame):
-    results = []
-    for n in data[nar_co0].tolist():
-        if n is not None:
-            matches = re.findall(r"[^ ]+ B[TB]", n, flags=re.IGNORECASE)
-            if matches:
-                o = matches[0]
-                sign = -1 if o[-1].upper() == "B" else 1
-                val = float(re.sub(r"° B.", "", o, flags=re.IGNORECASE).replace(",", "."))
-                results.append(sign * val)
-                continue
-        results.append(math.nan)
-    return results
-
-def dep_ett(data: pd.DataFrame):
-    results = []
-    for n in data[nar_co0].tolist():
-        if n is not None:
-            matches = re.findall(r"(?<=kedalaman )[^ ]+(?= km)", n, flags=re.IGNORECASE)
-            if matches:
-                results.append(float(matches[0].replace(",", ".")))
-                continue
-        results.append(math.nan)
-    return results
-
-def mag_ett(data: pd.DataFrame):
-    results = []
-    for n in data[nar_co0].tolist():
-        if n is not None:
-            matches = re.findall(r"magnitudo M?(?=([^.]+))", n, flags=re.IGNORECASE)
-            if matches:
-                # matches[0] is either a string or tuple depending on regex capture groups
-                m_str = matches[0][0] if isinstance(matches[0], tuple) else matches[0]
-                results.append(float(m_str.replace(",", ".")))
-                continue
-        results.append(math.nan)
-    return results
-
-
-#def lat_ett(data: pd.DataFrame):
-#    return [
-#        [(-1 if o[-1] == "S" else 1) * float(
-#            sub(r"° L.", "", o).replace(",", ".")
-#        ) for o in findall(r"[^ ]+ L[US]", n)][0]
-#        if n is not None else math.nan for n in data[nar_co0].tolist()
-#    ]
-
-
-##def lon_ett(data: pd.DataFrame):
-#    return [
-#        [(-1 if o[-1] == "B" else 1) * float(
-#            sub(r"° B.", "", o).replace(",", ".")
-#        ) for o in findall(r"[^ ]+ B[TB]", n)][0]
-#        if n is not None else math.nan for n in data[nar_co0].tolist()
-#    ]
-
-
-#def dep_ett(data: pd.DataFrame):
-#    return [
-#        float(findall(r"(?<=kedalaman )[^ ]+(?= km)", n)[0].replace(",", "."))
-#        if n is not None else math.nan for n in data[nar_co0].tolist()
+    return [
+        [(-1 if o[-1] == "S" else 1) * float(
+            sub(r"° L.", "", o).replace(",", ".")
+        ) for o in findall(r"[^ ]+ L[US]", n)][0]
+        if n is not None else math.nan for n in data[nar_co0].tolist()
     ]
 
 
-#def mag_ett(data: pd.DataFrame):
-#    return [
-#        float((findall(r"magnitudo M?(?=([^.]+))", n))[0].replace(",", "."))
-#        if n is not None else math.nan for n in data[nar_co0].tolist()
-#    ]
+def lon_ett(data: pd.DataFrame):
+    return [
+        [(-1 if o[-1] == "B" else 1) * float(
+            sub(r"° B.", "", o).replace(",", ".")
+        ) for o in findall(r"[^ ]+ B[TB]", n)][0]
+        if n is not None else math.nan for n in data[nar_co0].tolist()
+    ]
+
+
+def dep_ett(data: pd.DataFrame):
+    return [
+        float(findall(r"(?<=kedalaman )[^ ]+(?= km)", n)[0].replace(",", "."))
+        if n is not None else math.nan for n in data[nar_co0].tolist()
+    ]
+
+
+def mag_ett(data: pd.DataFrame):
+    return [
+        float((findall(r"magnitudo M?(?=([^.]+))", n))[0].replace(",", "."))
+        if n is not None else math.nan for n in data[nar_co0].tolist()
+    ]
 
 
 # PARSING!
