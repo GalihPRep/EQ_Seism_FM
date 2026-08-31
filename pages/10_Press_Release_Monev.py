@@ -136,37 +136,83 @@ dep_co1 = "Depth (km)"
 mag_co1 = "Magnitude"
 nar_co1 = "Narration Text"
 
-def lat_ett(data: pd.DataFrame):
-    return [
-        [(-1 if o[-1] == "S" else 1) * float(
-            sub(r"° L.", "", o).replace(",", ".")
-        ) for o in findall(r"[^ ]+ L[US]", n)][0]
-        if n is not None else math.nan for n in data[nar_co0].tolist()
-    ]
+#def lat_ett(data: pd.DataFrame):
+#    return [
+#        [(-1 if o[-1] == "S" else 1) * float(
+#            sub(r"° L.", "", o).replace(",", ".")
+#        ) for o in findall(r"[^ ]+ L[US]", n)][0]
+#        if n is not None else math.nan for n in data[nar_co0].tolist()
+#    ]
 
+
+#def lon_ett(data: pd.DataFrame):
+#    return [
+#        [(-1 if o[-1] == "B" else 1) * float(
+#            sub(r"° B.", "", o).replace(",", ".")
+#        ) for o in findall(r"[^ ]+ B[TB]", n)][0]
+#        if n is not None else math.nan for n in data[nar_co0].tolist()
+#    ]
+
+
+#def dep_ett(data: pd.DataFrame):
+#    return [
+#        float(findall(r"(?<=kedalaman )[^ ]+(?= km)", n)[0].replace(",", "."))
+#        if n is not None else math.nan for n in data[nar_co0].tolist()
+#    ]
+
+
+#def mag_ett(data: pd.DataFrame):
+#    return [
+#        float((findall(r"magnitudo M?(?=([^.]+))", n))[0].replace(",", "."))
+#        if n is not None else math.nan for n in data[nar_co0].tolist()
+#    ]
+    
+# --- Safe Regex Extraction Helpers ---
+def safe_extract_lat(text):
+    if not text:
+        return math.nan
+    matches = findall(r"[^ ]+ L[US]", text)
+    if not matches:
+        return math.nan
+    o = matches[0]
+    return (-1 if o[-1] == "S" else 1) * float(sub(r"° L.", "", o).replace(",", "."))
+
+def safe_extract_lon(text):
+    if not text:
+        return math.nan
+    matches = findall(r"[^ ]+ B[TB]", text)
+    if not matches:
+        return math.nan
+    o = matches[0]
+    return (-1 if o[-1] == "B" else 1) * float(sub(r"° B.", "", o).replace(",", "."))
+
+def safe_extract_dep(text):
+    if not text:
+        return math.nan
+    matches = findall(r"(?<=kedalaman )[^ ]+(?= km)", text)
+    if not matches:
+        return math.nan
+    return float(matches[0].replace(",", "."))
+
+def safe_extract_mag(text):
+    if not text:
+        return math.nan
+    matches = findall(r"magnitudo M?(?=([^.]+))", text)
+    if not matches:
+        return math.nan
+    return float(matches[0].replace(",", "."))
+
+def lat_ett(data: pd.DataFrame):
+    return [safe_extract_lat(n) for n in data[nar_co0].tolist()]
 
 def lon_ett(data: pd.DataFrame):
-    return [
-        [(-1 if o[-1] == "B" else 1) * float(
-            sub(r"° B.", "", o).replace(",", ".")
-        ) for o in findall(r"[^ ]+ B[TB]", n)][0]
-        if n is not None else math.nan for n in data[nar_co0].tolist()
-    ]
-
+    return [safe_extract_lon(n) for n in data[nar_co0].tolist()]
 
 def dep_ett(data: pd.DataFrame):
-    return [
-        float(findall(r"(?<=kedalaman )[^ ]+(?= km)", n)[0].replace(",", "."))
-        if n is not None else math.nan for n in data[nar_co0].tolist()
-    ]
-
+    return [safe_extract_dep(n) for n in data[nar_co0].tolist()]
 
 def mag_ett(data: pd.DataFrame):
-    return [
-        float((findall(r"magnitudo M?(?=([^.]+))", n))[0].replace(",", "."))
-        if n is not None else math.nan for n in data[nar_co0].tolist()
-    ]
-
+    return [safe_extract_mag(n) for n in data[nar_co0].tolist()]
 
 # PARSING!
 df.insert(1, lat_co1, lat_ett(df))
